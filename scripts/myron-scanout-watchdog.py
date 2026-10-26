@@ -212,6 +212,36 @@ edit(GPU_POWER,
      "                u32(&native_legacy_retirement_calls),\n",
      "u64(&native_gop_gpu_stale)")
 
+# ---- accelerator client records: why a process's connection was refused (diagnostic, 2026-10-26)
+
+edit(GPU_POWER,
+     "extern MyronClientText native_adreno_client_text[4];\n",
+     "extern MyronClientText native_adreno_client_text[4];\n"
+     "// The Adreno driver's per-client open records (NativeAdrenoPublish.cpp) and the last window overflow: which process was\n"
+     "// refused a GPU connection, why, and how often. Diagnostic only; the layouts match the driver's.\n"
+     "struct MyronClientRecord {char name[20]; uint32_t opens, refused, closes, slot, peak_mib, last_refusal;};\n"
+     "extern MyronClientRecord native_adreno_client_log[8];\n"
+     "extern volatile uint32_t native_adreno_window_overflow[7][3];\n",
+     "native_adreno_client_log[8]")
+
+edit(GPU_POWER,
+     '    pageRow(row++, "OPEN %.16s %.16s %.16s | START %.16s %.16s %.16s", d.opener[0], d.opener[1], d.opener[2], d.starter[0],\n'
+     '            d.starter[1], d.starter[2]);\n',
+     '    pageRow(row++, "OPEN %.16s %.16s %.16s | START %.16s %.16s %.16s", d.opener[0], d.opener[1], d.opener[2], d.starter[0],\n'
+     '            d.starter[1], d.starter[2]);\n'
+     '    {\n'
+     '        // myron: the last mount failure of the accelerator (1 no free slot, 2 the core open, 3 the window scope) and the\n'
+     '        // process whose connections were refused most often, with its opens, refusals, closes, live slot and last refusal.\n'
+     '        unsigned worst = 0;\n'
+     '        for (unsigned i = 1; i < 8; ++i) if (native_adreno_client_log[i].refused > native_adreno_client_log[worst].refused) worst = i;\n'
+     '        const MyronClientRecord &c = native_adreno_client_log[worst];\n'
+     '        pageRow(row++, "GM mount m%u e%x slot %u n%u | ovf %u/%u/%u", native_adreno_mount_fail[0], native_adreno_mount_fail[1],\n'
+     '                native_adreno_mount_fail[2], native_adreno_mount_fail[3], native_adreno_window_overflow[0][0],\n'
+     '                native_adreno_window_overflow[0][1], native_adreno_window_overflow[0][2]);\n'
+     '        pageRow(row++, "GC %.12s o%u r%u c%u slot %u lr%x", c.name, c.opens, c.refused, c.closes, c.slot, c.last_refusal);\n'
+     '    }\n',
+     "GM mount m%u")
+
 # ---------------------------------------------------------------- LegacyDisplayProbe.cpp (the slot-345 panic text)
 
 edit(PROBE,
