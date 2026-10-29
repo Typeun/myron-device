@@ -55,6 +55,22 @@ Never use `armcpu-self-ipi=1`: it unblocks IPI delivery without the pending-bit 
 
 `scripts/data/myron-observed.json` records the reserved memory, the RAM ranges the kernel received and the ranges the firmware hides. A UEFI memory map must keep all of them out of conventional memory.
 
+## Firmware
+
+The Mu-Silicium platform package lives in the sibling [`myron-uefi`](../myron-uefi) checkout
+(`Platforms/Xiaomi/myronPkg`). It was generated from the published
+[`songyuan-uefi`](https://github.com/WUKAWL/songyuan-uefi) package, which targets the same
+SM8850 / Canoe board: the stock `/reserved-memory` tables are identical, and all 48 live
+reserved ranges of this phone fall inside the map's `Reserv` descriptors.
+
+```sh
+./unixnu build firmware -D ../myron-device --uefi ../myron-uefi
+```
+
+The `unixnu` GPT entry that `[userdata]` selects **does not exist on the phone today**; its
+window overlaps the live Android `userdata`. Read [docs/STORAGE-AUDIT.md](docs/STORAGE-AUDIT.md)
+before any build that writes to storage.
+
 ## Scripts
 
 | Script | Purpose |

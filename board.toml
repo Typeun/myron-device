@@ -24,10 +24,17 @@ fetch = ["KernelCache", "DeviceTree", "StaticTrustCache", "Cryptex1,SystemTrustC
 "044-76034-038.dmg" = "b4908cde41d23e6bc05e6af51a2c9eeb00cf0f863a6a18b1600c96a3fd70414f"
 
 # The raw image for the UniXNU disk: the OS and SystemOS disk images of the IPSW behind a manifest.
-# Dual boot: HyperOS keeps "userdata" (0x39f200..0x5aaeaff, 348.24 GiB) and UniXNU gets its own 128 GiB
-# GPT entry "unixnu" of LUN 0 after it, 1 MiB aligned, on the 512 GB unit (LUN 0 = 0x7aaec00 LBAs; the
-# factory userdata ended at the last usable LBA 0x7aaebfa). Created on the phone on 2026-10-21 by GptSplitDxe
-# (myronPkg); fastboot reports partition-size:unixnu 0x2000000000. Never flash the root image to "userdata".
+# Dual boot: HyperOS keeps "userdata" and UniXNU gets its own 128 GiB GPT entry "unixnu" of LUN 0
+# after it, 1 MiB aligned, on the 512 GB unit (LUN 0 = 0x7aaec00 LBAs; the factory userdata ended
+# at the last usable LBA 0x7aaebfa). Created on the phone on 2026-10-21 by GptSplitDxe (myronPkg);
+# fastboot reports partition-size:unixnu 0x2000000000. Never flash the root image to "userdata".
+#
+# AUDIT 2026-10-29 (adb, this phone): the GPT has NO "unixnu" entry. /dev/block/by-name lists only
+# "userdata", and /sys/class/block/sda34 reports start=30380032 size=998756312 in 512-byte sectors,
+# i.e. 0x39f200..0x7aaebfa in 4096-byte LBAs (476.24 GiB) -- it covers the window below. So the
+# split was never applied to this unit (or was undone by a reflash): writing first_lba..last_lba
+# here would overwrite live Android data. Create the entry with GptSplitDxe (which shrinks
+# "userdata" first) or switch the port to single boot on "userdata" before any write.
 [userdata]
 partition = "unixnu"
 first_lba = 0x5aaeb00
@@ -113,7 +120,10 @@ roots = [
   "com.apple.iokit.IOHIDEventDriver",
 ]
 
-# The Mu-Silicium port: myronPkg is derived from the OnePlus 15 (infiniti, SM8850) package.
+# The Mu-Silicium port. The package lives in the sibling ../myron-uefi checkout: Platforms/Xiaomi/myronPkg
+# built from the published songyuan-uefi package (itself derived from the OnePlus 15 astonPkg, same SM8850),
+# with this board's SMBIOS identity, 1200x2608 framebuffer and stock canoe.dtb. Build with
+#   ./unixnu build firmware -D ../myron-device --uefi ../myron-uefi
 [firmware]
 config = "myron"                   # Resources/Configs/myron.toml in the Mu-Silicium checkout (--uefi)
 dsc = "Platforms/Xiaomi/myronPkg/myron.dsc"
