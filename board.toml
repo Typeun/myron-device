@@ -243,7 +243,7 @@ packed_data_ramdisk = true
 phone_identity = true
 phone_model = "iPhone15,2"           # 14 Pro (393x852 @3x); the panel is 400x869 @3x, closer than the default iPhone X
 # ipad_identity = true
-unique_chip_id = "required"          # the platform seed is not stored in any repository
+unique_chip_id = "0x1122334455667788"          # the platform seed is not stored in any repository
 
 # Image parameters come from the Mu-Silicium device config; [bootimg.image] would override them.
 
