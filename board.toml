@@ -57,27 +57,6 @@ archives = [
   "build-corecrypto-14.py --namespace",
   "build-arm-driver.py ArmDTPlatform",
   "build-arm-driver.py ArmCpu",
-  "audit-storage-interface-static.py",
-  "build-arm-driver.py NativeAES",
-  "build-native-aes-bindings.py",
-  "build-arm-driver.py NativeUfs",
-  "build-arm-driver.py NativeVirtioBlock --verified-root --verified-root-bundle",
-  "build-native-virtio-bindings.py --component NativeVirtioBlock --directory build/native-virtio-block-verified-bundle",
-  "build-arm-driver.py NativeRamBlock",
-  "build-native-virtio-bindings.py --component NativeRamBlock --directory build/native-ram-block",
-  "build-verified-root-probe.py --component os --include-systemos",
-  "build-boot-progress.py",               # the diagnostic page (CONFIG_XNU_BOOT_PROGRESS), kits/myron
-  # The original AMFI panics "No PMGR?" without an ApplePMGR nub: the guarded original-PMGR integration of sheng
-  # (CONFIG_XNU_SHENG_PMGR, kernel argument sheng-pmgr=2). Its builder needs this board's previous prelinked kernel.
-  "prepare-pmgr-reference.py",
-  "build-sheng-platform-power.py",
-  # The staged AGXAccelerator of NativeAdreno (the Metal discovery's accelerator, myron-gpu-metal=1), bound to the audited
-  # original IOAcceleratorES of this kernelcache; the display archive below takes its late object.
-  "build-native-adreno-accelerator.py",
-  # The CPU-copied GOP display (CONFIG_XNU_NATIVE_LEGACY_DISPLAY); its ABI audit reads the reference kernel above. The archive
-  # also carries touch (kits/myron MyronTouch.cpp) and the Adreno 840 bring-up (MyronGpuPower.cpp with NativeAdreno's objects).
-  "build-native-legacy-display.py",
-  "build-libpthread-kernel.py",
 ]
 
 [kernel.prelink]
@@ -176,7 +155,7 @@ skip_setup_tool = "scripts/seed-data-skip-setup.py"   # used by --skip-setup
 # installed and the home screen keeps only Photos/App Store/Settings (2026-10-25). With a persistent Data volume the
 # migration records the build once; with the RAM seed it runs again on every boot.
 skip_setup_args = ["--migration-pending"]
-panic_screen = true                  # scripts/patch-xnu-entry-probe.py (from UniXNU-sheng): blue bar at the kernel entry,
+panic_screen = false                  # scripts/patch-xnu-entry-probe.py (from UniXNU-sheng): blue bar at the kernel entry,
                                      # magenta before the MMU, panic() text on the frame buffer
 # The original static/System trust caches of the iPad7,1 image, as on sheng.
 trust_cache_sha256 = [
@@ -268,11 +247,3 @@ unique_chip_id = "required"          # the platform seed is not stored in any re
 
 # Image parameters come from the Mu-Silicium device config; [bootimg.image] would override them.
 
-# The stock ABL powers the panel off when the device tree has no splash region, and checks the node size.
-# Values from the stock myron dtbo overlay (fragment 197).
-[[bootimg.dtb_node]]
-path = "/reserved-memory/splash_region"
-props = [
-  { name = "label", type = "s", value = "cont_splash_region" },
-  { name = "reg", type = "x", value = ["0x0", "0xfc800000", "0x0", "0x2b00000"] },
-]
