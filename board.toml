@@ -174,7 +174,7 @@ kernel_args = [
   "kt_fixed_zones=120",
   "armcpu-diagnostics=1",
   "sheng-pmgr=2",                    # publish the original ApplePMGR nub for AMFI (no power operations)
-  "native-ufs-root=1",
+  # "native-ufs-root=1",  # needs the PMGR integration; RAM-only build for now
   # The firmware maps the UFS stream itself (apps SMMU SMR 0 -> context bank 0) and the context bank attribute page
   # takes an external abort from EL1 (hardware 2026-10-22): keep that mapping, write nothing to the SMMU.
   "native-ufs-smmu=1",
